@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diet Plans</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+
+<div class="container mt-5">
+    <h1 class="mb-4">Diet Plans</h1>
+    
+    <!-- Form to add a new diet plan -->
+    <form id="addDietForm">
+        <div class="form-group">
+            <label for="customer_id">Customer ID:</label>
+            <input type="text" class="form-control" id="customer_id" name="customer_id" required>
+        </div>
+        <div class="form-group">
+            <label for="break_fast">Breakfast:</label>
+            <input type="text" class="form-control" id="break_fast" name="break_fast" required>
+        </div>
+        <div class="form-group">
+            <label for="lunch">Lunch:</label>
+            <input type="text" class="form-control" id="lunch" name="lunch" required>
+        </div>
+        <div class="form-group">
+            <label for="preworkout">Preworkout:</label>
+            <input type="text" class="form-control" id="preworkout" name="preworkout" required>
+        </div>
+        <div class="form-group">
+            <label for="postworkout">Postworkout:</label>
+            <input type="text" class="form-control" id="postworkout" name="postworkout" required>
+        </div>
+        <div class="form-group">
+            <label for="dinner">Dinner:</label>
+            <input type="text" class="form-control" id="dinner" name="dinner" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Diet Plan</button>
+
+
+    </form>
+    <div class="form-group">
+        <label for="customerId">Enter Customer ID to see diet you created:</label>
+        <input type="text" class="form-control" id="customerIdInput" required>
+        <button class="btn btn-primary mt-2" onclick="fetchDietPlans()">See Diet </button>
+    </div>
+    
+  
+    <!-- Diet plans table -->
+    <table class="table mt-4">
+        <thead>
+            <tr>
+                <th>Customer ID</th>
+                <th>Breakfast</th>
+                <th>Lunch</th>
+                <th>Preworkout</th>
+                <th>Postworkout</th>
+                <th>Dinner</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="dietTableBody"></tbody>
+    </table>
+</div>
+
+<div class="container"> 
+    <a href="http://127.0.0.1:8000/manager_dashboard/" class="btn btn-primary">
+        Back to Dashboard
+    </a>
+</div>
+
+<script>
+    function fetchDietPlans() {
+        const customerId = document.getElementById('customerIdInput').value;
+        fetch(`/diet/list/${customerId}`)
+            .then(response => response.json())
+            .then(data => {
+                const dietTableBody = document.getElementById('dietTableBody');
+                dietTableBody.innerHTML = '';
+                data.forEach(diet => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${diet.customer_id}</td>
+                        <td>${diet.break_fast}</td>
+                        <td>${diet.lunch}</td>
+                        <td>${diet.preworkout}</td>
+                        <td>${diet.postworkout}</td>
+                        <td>${diet.dinner}</td>
+                        <td><button class="btn btn-danger delete-btn" data-customer-id="${diet.customer_id}">Delete</button></td>
+                    `;
+                    dietTableBody.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error fetching diet plans:', error));
+    }
+
+    // Function to handle form submission and add a new diet plan
+    document.getElementById('addDietForm').addEventListener('submit', event => {
+        event.preventDefault();
+        const formData = new FormData(event.target);
+        fetch('/diet/', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            fetchDietPlans();
+            event.target.reset();
+        })
+        .catch(error => console.error('Error adding diet plan:', error));
+    });
+
+    // Event listener to handle deletion of diet plans
+    document.getElementById('dietTableBody').addEventListener('click', event => {
+        if (event.target.classList.contains('delete-btn')) {
+            const customerId = event.target.dataset.customerId;
+            fetch(`/diet/delete/${customerId}/`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => fetchDietPlans())
+            .catch(error => console.error('Error deleting diet plan:', error));
+        }
+    });
+
+    // Initial fetch of diet plans
+    fetchDietPlans();
+</script>
+
+</body>
+</html>

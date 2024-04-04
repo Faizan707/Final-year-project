@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Customer Sign In</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h2> Customer Sign In</h2>
+        <form id="signin-form">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" class="form-control" id="username" placeholder="Enter username">
+            </div>
+            <div class="form-group">
+                <label for="id">ID</label>
+                <input type="text" class="form-control" id="id" placeholder="Enter ID">
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+
+    <!-- Bootstrap JS and jQuery (required for Bootstrap) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Your custom script -->
+    <script>
+// custom.js
+
+// Function to handle form submission
+const handleSubmit = (event) => {
+    event.preventDefault(); // Prevent default form submission
+    const username = document.getElementById('username').value;
+    const id = document.getElementById('id').value;
+
+    // You can perform further actions here like validation, AJAX requests, etc.
+    // For this example, let's log the values to console
+    console.log("Username:", username);
+    console.log("ID:", id);
+
+    // Redirect to the customer dashboard
+    window.location.href = `http://127.0.0.1:8000/customer-dashboard/`; // Redirecting to the customer dashboard
+};
+
+// Add event listener to form submission
+document.getElementById('signin-form').addEventListener('submit', handleSubmit);
+
+    </script>
+</body>
+</html>
