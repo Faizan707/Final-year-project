@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assistant Login</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <h2>Assistant/Instructor Sign In</h2>
+    <form id="signin-form">
+        <div class="form-group">
+            <label for="assistantname">Name</label>
+            <input type="text" class="form-control" id="assistantname" placeholder="Enter your name">
+        </div>
+        <div class="form-group">
+            <label for="assistantid">ID</label>
+            <input type="text" class="form-control" id="assistantid" placeholder="Enter your ID">
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById("signin-form").addEventListener("submit", function(event) {
+        event.preventDefault(); // Prevent form submission
+
+        // Get input values
+        let assistantName = document.getElementById("assistantname").value.trim();
+        let assistantID = document.getElementById("assistantid").value.trim();
+
+        // Fetch assistant details
+        fetchAssistantAPI(assistantID, assistantName);
+    });
+
+    function fetchAssistantAPI(assistantID, assistantName) {
+        fetch(`http://127.0.0.1:8000/get_assistant/${assistantID}`)
+            .then(response => response.json())
+            .then(data => {
+                // Check if fetched assistant name matches input name
+                if (data.name.trim() === assistantName) {
+                    window.location.href = "http://127.0.0.1:8000/assistantdashboard/";
+                } else {
+                    alert("Name and ID do not match.");
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("Failed to fetch assistant details. Please try again.");
+            });
+    }
+</script>
+
+</body>
+</html>

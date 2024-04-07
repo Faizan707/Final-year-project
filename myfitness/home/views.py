@@ -14,3 +14,13 @@ def customerDashboard(request):
     return render (request,"customerDashboard.html")
 def customerdiet(request):
     return render (request,"diet.html")
+def Addassistant(request):
+    return render (request,"addassistant.html")
+def assistantmanagerlogin(request):
+    return render(request,"assistantmanagerlogin.html")
+def assistantmanagerdashboard(request):
+    return render(request,"assistantmanagerdashboard.html")
+def CustomerFee(request):
+    return render(request,"customerfee.html")
+def OtherAccounts(request):
+    return render (request,"otheraccount.html")

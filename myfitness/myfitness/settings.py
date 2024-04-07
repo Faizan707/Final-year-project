@@ -42,7 +42,9 @@ INSTALLED_APPS = [
     "manager",
     "customer",
     "workout",
-    "diet"
+    "diet",
+    "assistant",
+    "accounts"
 ]
 
 MIDDLEWARE = [
