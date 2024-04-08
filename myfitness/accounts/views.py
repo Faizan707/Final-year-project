@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .models import CustomerAccounts, OtherAccounts
 from django.core.exceptions import ObjectDoesNotExist
 
+
 @csrf_exempt
 def create_customer_account(request):
     if request.method == 'POST':
