@@ -24,3 +24,21 @@ def CustomerFee(request):
     return render(request,"customerfee.html")
 def OtherAccounts(request):
     return render (request,"otheraccount.html")
+def feeReport(request):
+    return render(request,"fee-report.html")
+def dueFee(request):
+    return render(request,"duefee.html")
+def SalaryReports(request):
+    return render(request,"salaryreport.html")
+def ExpenseReports(request):
+    return render(request,"expense.html")
+def ProfitReports(request):
+    return render(request,"profit.html")
+def DailyReports(request):
+    return render(request,"dailyreports.html")
+def weeklyReports(request):
+    return render(request,"weeklyreport.html")
+def YearlyReports(request):
+    return render(request,"yearlyreport.html")
+def fitnessReport(request):
+    return render(request,"fitnessReport.html")
