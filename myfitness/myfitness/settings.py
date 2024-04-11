@@ -45,7 +45,10 @@ INSTALLED_APPS = [
     "diet",
     "assistant",
     "accounts",
-    "reports"
+    "reports",
+    "backup",
+    'dbbackup',
+
 ]
 
 MIDDLEWARE = [
@@ -130,3 +133,7 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+DBBACKUP_STORAGE = 'django.core.files.storage.FileSystemStorage'
+DBBACKUP_STORAGE_OPTIONS = {'location': BASE_DIR/'records'}

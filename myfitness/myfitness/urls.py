@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path
-from home.views import home, AddCustomer,Workout,customerlogin,customerDashboard,customerdiet,Addassistant,assistantmanagerlogin,assistantmanagerdashboard,CustomerFee,OtherAccounts,feeReport,dueFee,SalaryReports,ExpenseReports,ProfitReports,DailyReports,weeklyReports,YearlyReports,fitnessReport
+from home.views import home, AddCustomer,Workout,customerlogin,customerDashboard,customerdiet,Addassistant,assistantmanagerlogin,assistantmanagerdashboard,CustomerFee,OtherAccounts,feeReport,dueFee,SalaryReports,ExpenseReports,ProfitReports,DailyReports,weeklyReports,YearlyReports,fitnessReport,backup
 from contactUs.views import submit_message
 from manager.views import managerlogin, manager_dashboard
 from customer.views import create_customer, get_customer, delete_customer
@@ -9,8 +9,7 @@ from diet.views import diet_create, diet_list, diet_delete
 from assistant.views import create_assistant,get_assistant,delete_assistant
 from accounts.views import create_customer_account,get_other_account,get_customer_account,create_other_account,delete_customer_account,delete_other_account
 from reports.views import create_fee_report,get_fee_report,delete_fee_report,get_all_fee_reports,create_due_fee, get_all_due_fees, delete_due_fee,create_salary, get_all_salaries, delete_salary,create_expense, get_all_expenses, delete_expense,create_profit, get_all_profits, delete_profit,create_daily_report, get_all_daily_reports, delete_daily_report,create_weekly_report, get_all_weekly_reports, delete_weekly_report,create_yearly_report, get_all_yearly_reports, delete_yearly_report,create_fitness_report, get_all_fitness_reports, delete_fitness_report
-
-
+from backup.views import create_backup
 
 
 urlpatterns = [
@@ -74,6 +73,7 @@ urlpatterns = [
     path('fitness_reports/', create_fitness_report, name='create_fitness_report'),
     path('fitness_reports/all/', get_all_fitness_reports, name='get_all_fitness_reports'),
     path('fitness_reports/<int:fitness_report_id>/delete/', delete_fitness_report, name='delete_fitness_report'),
+    path('api/create_backup/', create_backup, name='create_backup'),
 
     path("feeReport/",feeReport,name="feeReport"),
     path("duefee/",dueFee,name="dueFee"),
@@ -83,6 +83,6 @@ urlpatterns = [
     path("dailyreport/",DailyReports,name="DailyReports"),
     path("weeklyreport/",weeklyReports,name="weeklyReports"),
     path("yearlyreport/",YearlyReports,name="YearlyReports"),
-    path("fitness-report/",fitnessReport,name="fitnessReport")
-
+    path("fitness-report/",fitnessReport,name="fitnessReport"),
+    path("backup/", backup,name="backup")
 ]

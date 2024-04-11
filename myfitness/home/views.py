@@ -42,3 +42,6 @@ def YearlyReports(request):
     return render(request,"yearlyreport.html")
 def fitnessReport(request):
     return render(request,"fitnessReport.html")
+def backup(request):
+    return render(request,"backup.html")
+    
