@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yearly Report Management</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Yearly Report Management</h1>
+
+        <!-- Form to input new yearly report data -->
+        <form id="createYearlyReportForm">
+            <div class="form-group">
+                <label for="year">Year:</label>
+                <input type="number" class="form-control" id="year" required>
+            </div>
+            <div class="form-group">
+                <label for="total_fees_collected">Total Fees Collected:</label>
+                <input type="number" step="0.01" class="form-control" id="total_fees_collected" required>
+            </div>
+            <div class="form-group">
+                <label for="total_expenses">Total Expenses:</label>
+                <input type="number" step="0.01" class="form-control" id="total_expenses" required>
+            </div>
+            <div class="form-group">
+                <label for="total_salary_paid">Total Salary Paid:</label>
+                <input type="number" step="0.01" class="form-control" id="total_salary_paid" required>
+            </div>
+            <div class="form-group">
+                <label for="total_profit">Total Profit:</label>
+                <input type="number" step="0.01" class="form-control" id="total_profit" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Yearly Report</button>
+        </form>
+
+        <!-- Table to display yearly report data -->
+        <table class="table mt-5">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Year</th>
+                    <th>Total Fees Collected</th>
+                    <th>Total Expenses</th>
+                    <th>Total Salary Paid</th>
+                    <th>Total Profit</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="yearlyReportTableBody"></tbody>
+        </table>
+    </div>
+    <div class="container mt-3">
+        <a href="http://127.0.0.1:8000/manager_dashboard/" class="btn btn-primary">
+            Back to Manager Dashboard
+        </a>
+    </div>
+
+    <script>
+        function fetchYearlyReports() {
+            fetch('/yearly_reports/all/')
+            .then(response => response.json())
+            .then(data => {
+                const yearlyReportTableBody = document.getElementById('yearlyReportTableBody');
+                yearlyReportTableBody.innerHTML = '';
+
+                data.forEach(yearlyReport => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${yearlyReport.id}</td>
+                        <td>${yearlyReport.year}</td>
+                        <td>${yearlyReport.total_fees_collected}</td>
+                        <td>${yearlyReport.total_expenses}</td>
+                        <td>${yearlyReport.total_salary_paid}</td>
+                        <td>${yearlyReport.totalprofit}</td>
+                        <td><button class="btn btn-danger" onclick="deleteYearlyReport(${yearlyReport.id})">Delete</button></td>
+                    `;
+                    yearlyReportTableBody.appendChild(row);
+                });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        function deleteYearlyReport(id) {
+            fetch(`/yearly_reports/${id}/delete/`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                fetchYearlyReports();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        document.getElementById('createYearlyReportForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const year = document.getElementById('year').value;
+            const total_fees_collected = document.getElementById('total_fees_collected').value;
+            const total_expenses = document.getElementById('total_expenses').value;
+            const total_salary_paid = document.getElementById('total_salary_paid').value;
+            const total_profit = document.getElementById('total_profit').value;
+
+            const data = {
+                year: year,
+                total_fees_collected: total_fees_collected,
+                total_expenses: total_expenses,
+                total_salary_paid: total_salary_paid,
+                totalprofit: total_profit
+            };
+
+            fetch('/yearly_reports/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Yearly report added successfully with ID: ' + data.id);
+                fetchYearlyReports();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+
+        // Load yearly reports when the page loads
+        window.onload = function() {
+            fetchYearlyReports();
+        };
+    </script>
+</body>
+</html>

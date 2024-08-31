@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .logout-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="logout-container">
+        <a href="http://127.0.0.1:8000" class="btn btn-danger">Logout</a>
+    </div>
+    
+    <div class="container mt-5">
+        <h2>Welcome</h2>
+        <h1 class="mt-3">View your Workout Plan</h1>
+        <form id="workoutIdForm">
+            <div class="form-group mt-5">
+                <label for="workoutId">Enter Your ID To See Workouts:</label>
+                <input type="text" class="form-control" id="workoutId" placeholder="Enter your ID">
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+        <div id="workoutTableContainer" style="display: none;">
+            <table class="table mt-5">
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>Workout Name</th>
+                        <th>Exercises</th>
+                    </tr>
+                </thead>
+                <tbody id="workout-table-body">
+                </tbody>
+            </table>
+        </div>
+        <div id="noWorkoutMessage" class="alert alert-warning mt-3" style="display: none;">
+            No workout plan found for the provided ID.
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <h1 class="mb-4">View Your Diet Plan</h1>
+        <form id="dietIdForm">
+            <div class="form-group">
+                <label for="customerId">Enter Your Customer ID:</label>
+                <input type="text" class="form-control" id="customerId" name="customerId" required>
+            </div>
+            <button type="submit" class="btn btn-primary">View Diet Plan</button>
+        </form>
+        <div id="dietTableContainer" style="display: none;">
+            <h2 class="mt-4">Your Diet Plan</h2>
+            <table id="dietTable" class="table mt-2">
+                <thead>
+                    <tr>
+                        <th>Customer ID</th>
+                        <th>Breakfast</th>
+                        <th>Lunch</th>
+                        <th>Preworkout</th>
+                        <th>Postworkout</th>
+                        <th>Dinner</th>
+                    </tr>
+                </thead>
+                <tbody id="dietTableBody">
+                </tbody>
+            </table>
+        </div>
+        <div id="noDietMessage" class="alert alert-warning mt-3" style="display: none;">
+            No diet plan found for the provided customer ID.
+        </div>
+    </div>
+
+    <div class="container mt-5">
+        <h1 class="mb-4">View Your Instructor Details</h1>
+        <form id="instructorIdForm">
+            <div class="form-group">
+                <label for="instructorId">Enter Your Instructor ID:</label>
+                <input type="text" class="form-control" id="instructorId" name="instructorId" required>
+            </div>
+            <button type="submit" class="btn btn-primary">View Instructor Details</button>
+        </form>
+        <div id="instructorTableContainer" style="display: none;">
+            <h2 class="mt-4">Your Instructor Details</h2>
+            <table id="instructorTable" class="table mt-2">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Phone Number</th>
+                        <th>Address</th>
+                        <th>Qualification</th>
+                        <th>Experience</th>
+                        <th>Availability</th>
+                    </tr>
+                </thead>
+                <tbody id="instructorTableBody">
+                </tbody>
+            </table>
+        </div>
+        <div id="noInstructorMessage" class="alert alert-warning mt-3" style="display: none;">
+            No instructor details found for the provided ID.
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and jQuery (required for Bootstrap) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        document.getElementById('workoutIdForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const customerId = document.getElementById('workoutId').value;
+            fetchWorkoutPlan(customerId);
+        });
+
+        function fetchWorkoutPlan(customerId) {
+            fetch(`http://127.0.0.1:8000/workouts/${customerId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    const workoutTableBody = document.getElementById('workout-table-body');
+                    workoutTableBody.innerHTML = ''; 
+                    document.getElementById('noWorkoutMessage').style.display = 'none';
+
+                    if (data.length === 0) {
+                        document.getElementById('noWorkoutMessage').style.display = 'block';
+                        document.getElementById('workoutTableContainer').style.display = 'none';
+                        return;
+                    }
+
+                    data.forEach(workout => {
+                        const row = `
+                            <tr>
+                                <td>${workout.day}</td>
+                                <td>${workout.workout_name}</td>
+                                <td>${workout.exercises}</td>
+                            </tr>
+                        `;
+                        workoutTableBody.innerHTML += row;
+                    });
+
+                    document.getElementById('workoutTableContainer').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error fetching workout plan:', error);
+                    const workoutTableBody = document.getElementById('workout-table-body');
+                    workoutTableBody.innerHTML = `<tr><td colspan="3">Error fetching workout plan. Please try again later.</td></tr>`;
+                });
+        }
+
+        document.getElementById('dietIdForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const customerId = document.getElementById('customerId').value;
+
+            fetch(`http://127.0.0.1:8000/diet/list/${customerId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const dietTableBody = document.getElementById('dietTableBody');
+                    dietTableBody.innerHTML = '';
+                    document.getElementById('noDietMessage').style.display = 'none';
+
+                    if (data.length === 0) {
+                        document.getElementById('noDietMessage').style.display = 'block';
+                        document.getElementById('dietTableContainer').style.display = 'none';
+                        return;
+                    }
+
+                    data.forEach(diet => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${diet.customer_id}</td>
+                            <td>${diet.break_fast}</td>
+                            <td>${diet.lunch}</td>
+                            <td>${diet.preworkout}</td>
+                            <td>${diet.postworkout}</td>
+                            <td>${diet.dinner}</td>
+                        `;
+                        dietTableBody.appendChild(row);
+                    });
+
+                    document.getElementById('dietTableContainer').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error fetching diet plan:', error);
+                    const dietTableBody = document.getElementById('dietTableBody');
+                    dietTableBody.innerHTML = `<tr><td colspan="6">Error fetching diet plan. Please try again later.</td></tr>`;
+                });
+        });
+
+
+        function fetchInstructorDetails(instructorId) {
+            fetch(`http://127.0.0.1:8000/get_assistant/${instructorId}/`)
+                .then(response => response.json())
+                .then(data => {
+                    const instructorTableBody = document.getElementById('instructorTableBody');
+                    instructorTableBody.innerHTML = ''; 
+                    document.getElementById('noInstructorMessage').style.display = 'none';
+    
+                    if (Array.isArray(data)) {
+                        if (data.length === 0) {
+                            document.getElementById('noInstructorMessage').style.display = 'block';
+                            document.getElementById('instructorTableContainer').style.display = 'none';
+                            return;
+                        }
+    
+                        data.forEach(instructor => {
+                            const row = `
+                                <tr>
+                                    <td>${instructor.name}</td>
+                                    <td>${instructor.phone_number}</td>
+                                    <td>${instructor.address}</td>
+                                    <td>${instructor.qualification}</td>
+                                    <td>${instructor.experience}</td>
+                                    <td>${instructor.availability}</td>
+                                </tr>
+                            `;
+                            instructorTableBody.innerHTML += row;
+                        });
+                    } else if (typeof data === 'object') {
+                        const row = `
+                            <tr>
+                                <td>${data.name}</td>
+                                <td>${data.phone_number}</td>
+                                <td>${data.address}</td>
+                                <td>${data.qualification}</td>
+                                <td>${data.experience}</td>
+                                <td>${data.available_from} - ${data.available_to}</td>
+                            </tr>
+                        `;
+                        instructorTableBody.innerHTML += row;
+                    } else {
+                        document.getElementById('noInstructorMessage').style.display = 'block';
+                        document.getElementById('instructorTableContainer').style.display = 'none';
+                        return;
+                    }
+    
+                    document.getElementById('instructorTableContainer').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error fetching instructor details:', error);
+                    const instructorTableBody = document.getElementById('instructorTableBody');
+                    instructorTableBody.innerHTML = `<tr><td colspan="6">Error fetching instructor details. Please try again later.</td></tr>`;
+                });
+        }
+    
+        document.getElementById('instructorIdForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const instructorId = document.getElementById('instructorId').value;
+            fetchInstructorDetails(instructorId);
+        });
+    </script>
+</body>
+</html>

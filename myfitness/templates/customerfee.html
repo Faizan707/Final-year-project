@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Account Management</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>Customer Account Management</h1>
+
+        <!-- Form to create a new customer account -->
+        <form id="createForm">
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="customerId">Customer ID:</label>
+                <input type="text" class="form-control" id="customerId" name="customer_id" required>
+            </div>
+            <div class="form-group">
+                <label for="customerFee">Customer Fee:</label>
+                <input type="number" class="form-control" id="customerFee" name="customer_fee" required>
+            </div>
+            <div class="form-group">
+                <label for="status">Status:</label>
+                <select class="form-control" id="status" name="status">
+                    <option value="unpaid">Unpaid</option>
+                    <option value="paid">Paid</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Create Account</button>
+        </form>
+
+        <!-- Form to input customer ID -->
+        <div class="form-group mt-4">
+            <label for="customerIdInput">Enter Customer ID:</label>
+            <input type="text" class="form-control" id="customerIdInput" required>
+            <button id="getAccountBtn" class="btn btn-primary mt-2">Get Account Details</button>
+        </div>
+
+        <!-- Placeholder for displaying account details -->
+        <div id="accountDetails" style="display: none;">
+            <h2>Account Details</h2>
+            <table class="table">
+                <tbody id="accountDetailsBody"></tbody>
+            </table>
+            <button id="toggleDetailsBtn" class="btn btn-secondary mt-3">Hide Details</button>
+            <button id="editAccountBtn" class="btn btn-info mt-3 ml-2">Edit Account</button>
+        </div>
+    </div>
+    <div class="container mt-3">
+        <a href="http://127.0.0.1:8000/assistantdashboard/" class="btn btn-primary">
+            Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Bootstrap Modal for Edit Account -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Edit Customer Account</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="editForm">
+                        <div class="form-group">
+                            <label for="editName">Name:</label>
+                            <input type="text" class="form-control" id="editName" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editCustomerFee">Customer Fee:</label>
+                            <input type="number" class="form-control" id="editCustomerFee" name="customer_fee" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editStatus">Status:</label>
+                            <select class="form-control" id="editStatus" name="status">
+                                <option value="unpaid">Unpaid</option>
+                                <option value="paid">Paid</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        const baseURL = 'http://127.0.0.1:8000'; // Set your base URL here
+        let currentCustomerId = null; // Variable to store the current customer ID
+        
+        // Function to handle form submission to create a new customer account
+        document.getElementById('createForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var formData = new FormData(this);
+            fetch(baseURL + '/customer/create/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                if (data.id) {
+                    getAccountDetails(data.id);
+                }
+            })
+            .catch(error => alert(error.error));
+        });
+        
+        // Function to retrieve account details and display as a table
+        function getAccountDetails(customerId) {
+            fetch(baseURL + '/customer/' + customerId + '/')
+                .then(response => response.json())
+                .then(data => {
+                    const table = `
+                        <tr><th>Name</th><td>${data.name}</td></tr>
+                        <tr><th>Customer ID</th><td>${data.customer_id}</td></tr>
+                        <tr><th>Customer Fee</th><td>${data.customer_fee}</td></tr>
+                        <tr><th>Status</th><td>${data.status}</td></tr>
+                    `;
+                    document.getElementById('accountDetailsBody').innerHTML = table;
+                    document.getElementById('accountDetails').style.display = 'block'; // Show the details
+                    updateToggleButtonText(true); // Update toggle button text to "Hide Details"
+                    document.getElementById('toggleDetailsBtn').addEventListener('click', toggleDetails);
+                    document.getElementById('editAccountBtn').addEventListener('click', function() {
+                        // Store current customer ID
+                        currentCustomerId = data.customer_id;
+                        // Populate modal fields with current account details
+                        document.getElementById('editName').value = data.name;
+                        document.getElementById('editCustomerFee').value = data.customer_fee;
+                        document.getElementById('editStatus').value = data.status;
+        
+                        // Show the modal
+                        $('#editModal').modal('show');
+                    });
+                })
+                .catch(error => alert(error.error));
+        }
+        
+        // Function to toggle display of account details
+        function toggleDetails() {
+            const detailsContainer = document.getElementById('accountDetails');
+            if (detailsContainer.style.display === 'none') {
+                detailsContainer.style.display = 'block';
+                updateToggleButtonText(true);
+            } else {
+                detailsContainer.style.display = 'none';
+                updateToggleButtonText(false);
+            }
+        }
+        
+        // Function to update toggle button text
+        function updateToggleButtonText(showDetails) {
+            const toggleButton = document.getElementById('toggleDetailsBtn');
+            if (showDetails) {
+                toggleButton.textContent = 'Hide Details';
+            } else {
+                toggleButton.textContent = 'Show Details';
+            }
+        }
+        
+        // Event listener for the "Get Account Details" button
+        document.getElementById('getAccountBtn').addEventListener('click', function() {
+            let customerId = document.getElementById('customerIdInput').value;
+            if (customerId) {
+                getAccountDetails(customerId);
+            } else {
+                alert('Please enter a customer ID.');
+            }
+        });
+        
+        // Function to handle edit form submission
+        document.getElementById('editForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var formData = new FormData(this);
+            fetch(baseURL + '/customer/' + currentCustomerId + '/update/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                if (data.success) {
+                    // Close modal after successful update
+                    $('#editModal').modal('hide');
+                    // Refresh account details after successful update
+                    getAccountDetails(currentCustomerId);
+                }
+            })
+            .catch(error => alert(error.error));
+        });
+        
+    </script>
+</body>
+</html>

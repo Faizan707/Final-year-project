@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workouts Form</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container">
+        <h1>Create New Workout</h1>
+        <form id="workoutForm">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="customerId" class="form-label">Customer ID</label>
+                <input type="text" class="form-control" id="customerId" name="customer_id">
+            </div>
+            <div class="mb-3">
+                <label for="day" class="form-label">Day</label>
+                <input type="text" class="form-control" id="day" name="day">
+            </div>
+            <div class="mb-3">
+                <label for="workoutName" class="form-label">Workout Name</label>
+                <input type="text" class="form-control" id="workoutName" name="workout_name">
+            </div>
+            <div class="mb-3">
+                <label for="exercises" class="form-label">Exercises</label>
+                <textarea class="form-control" id="exercises" name="exercises"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    </div>
+
+    <div class="container mt-5">
+        <h2>See Workout Plan You Created</h2>
+        <div class="form-group">
+            <input type="text" class="form-control" id="customerIdInput" placeholder="Enter Customer ID">
+            <button onclick="fetchWorkoutPlans()" class="btn btn-primary mt-3">See Plan</button>
+        </div>
+    </div>
+    <div class="container">
+        <div class="table-responsive">
+            <table class="table mt-4">
+                <thead>
+                    <tr>
+                        <th>Day</th>
+                        <th>Workout Name</th>
+                        <th>Exercises</th>
+                    </tr>
+                </thead>
+                <tbody id="workoutTableBody">
+                    <!-- Table rows will be dynamically added here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Delete Workout Plan</h2>
+        <div class="form-group">
+            <label for="customerId">Enter Customer ID:</label>
+            <input type="text" class="form-control" id="deleteCustomerIdInput" placeholder="Enter Customer ID">
+        </div>
+        <button type="button" class="btn btn-danger mt-2" onclick="deleteWorkoutPlan()">Delete Workout Plan</button>
+    </div>
+
+    <div class="container mt-5">
+        <a href="http://127.0.0.1:8000/manager_dashboard/" class="btn btn-primary">
+            Back to Manager Dashboard
+        </a>
+    </div>
+
+    <!-- Alert Placeholder -->
+    <div class="container mt-3">
+        <div id="alertPlaceholder"></div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('workoutForm');
+
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                const formData = new FormData(form);
+                const requestData = Object.fromEntries(formData.entries());
+
+                fetch('http://127.0.0.1:8000/workouts/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken') // Get CSRF token from cookie
+                    },
+                    body: JSON.stringify(requestData)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    form.reset(); // Reset the form
+                    return response.json();
+                })
+                .then(data => {
+                    showAlert('Workout created successfully', 'success');
+                })
+                .catch(error => {
+                    console.error('There was a problem with the fetch operation:', error);
+                    showAlert('Error creating workout', 'danger');
+                });
+            });
+
+            // Function to get CSRF token from cookie
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        // Does this cookie string begin with the name we want?
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+
+            window.deleteWorkoutPlan = function() {
+                const customerId = document.getElementById('deleteCustomerIdInput').value;
+                fetch(`http://127.0.0.1:8000/workouts/${customerId}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken') // Get CSRF token from cookie
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to delete workout plan');
+                    }
+                    showAlert('Workout plan deleted successfully', 'success');
+                })
+                .catch(error => {
+                    console.error('Error deleting workout plan:', error);
+                    showAlert('Error deleting workout plan', 'danger');
+                });
+            }
+
+            window.fetchWorkoutPlans = function() {
+                const customerId = document.getElementById('customerIdInput').value;
+
+                // Check if the customer ID is provided
+                if (!customerId) {
+                    showAlert('Please enter a customer ID.', 'danger');
+                    return;
+                }
+
+                // Fetch workout plans using the provided customer ID
+                fetch(`http://127.0.0.1:8000/workouts/${customerId}/`)
+                    .then(response => {
+                        // Check if the response is successful
+                        if (!response.ok) {
+                            throw new Error('Error fetching workout plans.');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Display workout plans in a table
+                        const workoutTableBody = document.getElementById('workoutTableBody');
+                        workoutTableBody.innerHTML = '';
+
+                        if (data.length === 0) {
+                            workoutTableBody.innerHTML = '<tr><td colspan="3">No workout plans found for the provided ID.</td></tr>';
+                        } else {
+                            data.forEach(workout => {
+                                const row = `
+                                    <tr>
+                                        <td>${workout.day}</td>
+                                        <td>${workout.workout_name}</td>
+                                        <td>${workout.exercises}</td>
+                                    </tr>
+                                `;
+                                workoutTableBody.innerHTML += row;
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching workout plans:', error);
+                        showAlert('Error fetching workout plans. Please try again later.', 'danger');
+                    });
+            }
+
+            function showAlert(message, type) {
+                const alertPlaceholder = document.getElementById('alertPlaceholder');
+                const alert = `
+                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+                alertPlaceholder.innerHTML = alert;
+            }
+        });
+    </script>
+</body>
+</html>

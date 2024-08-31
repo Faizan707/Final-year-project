@@ -1,0 +1,67 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Backup</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">Database Backup</h1>
+        <button id="backupButton" class="btn btn-primary">Create Backup</button>
+        <div id="status" class="mt-3"></div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const backupButton = document.getElementById('backupButton');
+            const statusDiv = document.getElementById('status');
+        
+            backupButton.addEventListener('click', function () {
+                fetch('/api/create_backup/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to create backup');
+                    }
+                    // Check if the response is a file download
+                    const disposition = response.headers.get('Content-Disposition');
+                    if (disposition && disposition.includes('attachment')) {
+                        return response.blob();
+                    } else {
+                        return response.json();
+                    }
+                })
+                .then(data => {
+                    if (data instanceof Blob) {
+                        // Create a URL for the blob and initiate download
+                        const url = window.URL.createObjectURL(data);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'backup.json';
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        statusDiv.textContent = 'Backup created and downloaded successfully!';
+                    } else {
+                        statusDiv.textContent = 'Failed to create backup: ' + data.message;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    statusDiv.textContent = 'An error occurred while creating backup.';
+                });
+            });
+        });
+
+    </script>
+</body>
+</html>

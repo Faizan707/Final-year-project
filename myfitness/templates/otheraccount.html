@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Other Account Management</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="text-right mt-2">
+            <a href="http://127.0.0.1:8000/" class="btn btn-outline-danger">Logout</a>
+        </div>
+
+        <h1>Other Account Management</h1>
+
+        <!-- Form to create a new other account -->
+        <form id="createForm">
+            <div class="form-group">
+                <label for="rentFee">Rent Fee:</label>
+                <input type="number" class="form-control" id="rentFee" name="rent_fee" required>
+            </div>
+            <div class="form-group">
+                <label for="staffFee">Staff Fee:</label>
+                <input type="number" class="form-control" id="staffFee" name="staff_fee" required>
+            </div>
+            <div class="form-group">
+                <label for="status">Status:</label>
+                <select class="form-control" id="status" name="status">
+                    <option value="unpaid">Unpaid</option>
+                    <option value="paid">Paid</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Create Account</button>
+        </form>
+
+        <!-- Form to get details of an existing account -->
+        <form id="getDetailsForm">
+            <div class="form-group">
+                <label for="accountId">Account ID:</label>
+                <input type="number" class="form-control" id="accountId" name="account_id" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Get Account Details</button>
+        </form>
+
+        <!-- Placeholder for displaying other account details -->
+        <div id="accountDetails"></div>
+    </div>
+    <div class="container mt-3">
+        <a href="http://127.0.0.1:8000/assistantdashboard/" class="btn btn-primary">
+            Back to  Dashboard
+        </a>
+    </div>
+
+    <!-- Bootstrap Modal for Editing Account -->
+    <div class="modal fade" id="editAccountModal" tabindex="-1" role="dialog" aria-labelledby="editAccountModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editAccountModalLabel">Edit Other Account</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="editForm">
+                    <div class="modal-body">
+                        <input type="hidden" id="edit_account_id" name="edit_account_id">
+                        <div class="form-group">
+                            <label for="edit_rentFee">Rent Fee:</label>
+                            <input type="number" class="form-control" id="edit_rentFee" name="edit_rent_fee" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_staffFee">Staff Fee:</label>
+                            <input type="number" class="form-control" id="edit_staffFee" name="edit_staff_fee" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_status">Status:</label>
+                            <select class="form-control" id="edit_status" name="edit_status">
+                                <option value="unpaid">Unpaid</option>
+                                <option value="paid">Paid</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        const baseURL = 'http://127.0.0.1:8000'; // Set your base URL here
+
+        // Function to handle form submission to create a new other account
+        document.getElementById('createForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var formData = new FormData(this);
+            fetch(baseURL + '/other/create/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                if (data.id) {
+                    getAccountDetailsById(data.id);
+                }
+            })
+            .catch(error => alert(error.error));
+        });
+
+        // Function to handle form submission to get account details by ID
+        document.getElementById('getDetailsForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var formData = new FormData(this);
+            const accountId = formData.get('account_id');
+            if (accountId) {
+                getAccountDetailsById(accountId);
+            } else {
+                alert('Please enter an account ID.');
+            }
+        });
+
+        // Function to retrieve other account details by ID and display in table form
+        function getAccountDetailsById(accountId) {
+            fetch(baseURL + '/other/' + accountId + '/')
+                .then(response => response.json())
+                .then(data => {
+                    const table = `
+                        <h2>Other Account Details</h2>
+                        <table class="table">
+                            <tbody>
+                                <tr><th>Rent Fee</th><td>${data.rent_fee}</td></tr>
+                                <tr><th>Staff Fee</th><td>${data.staff_fee}</td></tr>
+                                <tr><th>Status</th><td>${data.status}</td></tr>
+                            </tbody>
+                        </table>
+                    `;
+                    document.getElementById('accountDetails').innerHTML = table;
+                    showEditButton(accountId); // Call function to show edit button
+                    showDeleteButton(accountId); // Call function to show delete button
+                })
+                .catch(error => alert(error.error));
+        }
+
+        // Function to show edit button and attach modal open event
+        function showEditButton(accountId) {
+            const editBtn = document.createElement('button');
+            editBtn.className = 'btn btn-primary mt-3 mr-2';
+            editBtn.textContent = 'Edit Account';
+            editBtn.setAttribute('data-toggle', 'modal');
+            editBtn.setAttribute('data-target', '#editAccountModal');
+            editBtn.addEventListener('click', function() {
+                openEditModal(accountId);
+            });
+            document.getElementById('accountDetails').appendChild(editBtn);
+        }
+
+        // Function to show delete button
+        function showDeleteButton(accountId) {
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'btn btn-danger mt-3';
+            deleteBtn.textContent = 'Delete Account';
+            deleteBtn.addEventListener('click', function() {
+                if (confirm('Are you sure you want to delete this account?')) {
+                    deleteAccount(accountId);
+                }
+            });
+            document.getElementById('accountDetails').appendChild(deleteBtn);
+        }
+
+        // Function to open edit modal and pre-fill data
+        function openEditModal(accountId) {
+            fetch(baseURL + '/other/' + accountId + '/')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('edit_account_id').value = accountId;
+                    document.getElementById('edit_rentFee').value = data.rent_fee;
+                    document.getElementById('edit_staffFee').value = data.staff_fee;
+                    document.getElementById('edit_status').value = data.status; // Ensure 'status' is properly returned from Django view
+                })
+                .catch(error => alert(error.error));
+        }
+
+        // Function to handle form submission to edit other account details
+        document.getElementById('editForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var formData = new FormData(this);
+            const accountId = formData.get('edit_account_id');
+            
+            // Serialize select element manually if not included by FormData
+            formData.append('edit_status', document.getElementById('edit_status').value);
+
+            fetch(baseURL + '/other/' + accountId + '/update/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                $('#editAccountModal').modal('hide'); // Hide the modal after submission
+                getAccountDetailsById(accountId); // Refresh account details after update
+            })
+            .catch(error => alert(error.error));
+        });
+
+        // Function to delete an other account
+        function deleteAccount(accountId) {
+            fetch(baseURL + '/other/' + accountId + '/delete/', {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                document.getElementById('accountDetails').innerHTML = ''; // Clear account details after deletion
+            })
+            .catch(error => alert(error.error));
+        }
+    </script>
+</body>
+</html>

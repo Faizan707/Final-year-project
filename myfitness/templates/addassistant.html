@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assistant Form</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container mt-5">
+    <h1>Create Assistant</h1>
+    <form id="assistantForm">
+      <div class="form-group">
+        <label for="assistantID">Assistant ID</label>
+        <input type="text" class="form-control" id="assistantID" name="assistantID">
+      </div>
+      <div class="form-group">
+        <label for="firstName"> Name</label>
+        <input type="text" class="form-control" id="firstName" name="first_name">
+      </div>
+            <div class="form-group">
+        <label for="phoneNumber">Phone Number</label>
+        <input type="text" class="form-control" id="phoneNumber" name="phone_number">
+      </div>
+      <div class="form-group">
+        <label for="address">Address</label>
+        <input type="text" class="form-control" id="address" name="address">
+      </div>
+      <div class="form-group">
+        <label for="qualification">Qualification</label>
+        <input type="text" class="form-control" id="qualification" name="qualification">
+      </div>
+      <div class="form-group">
+        <label for="experience">Experience</label>
+        <input type="text" class="form-control" id="experience" name="experience">
+      </div>
+      <div class="form-group">
+        <label for="availableFrom">Available From</label>
+        <input type="time" class="form-control" id="availableFrom" name="available_from">
+      </div>
+      <div class="form-group">
+        <label for="availableTo">Available To</label>
+        <input type="time" class="form-control" id="availableTo" name="available_to">
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+  </div>
+  <div class="container mt-5">
+    <h1 class="mb-4">Assistant Management</h1>
+    <!-- Input field and button for fetching assistant details -->
+    <div class="form-row mb-3">
+      <div class="col">
+        <input type="text" class="form-control" id="assistantIDInput" placeholder="Enter Assistant ID">
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-primary" id="fetchAssistantBtn">See Assistant Details</button>
+      </div>
+    </div>
+    
+    <!-- Table to display assistant details -->
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th> Name</th>
+            <th>Phone Number</th>
+            <th>Address</th>
+            <th>Qualification</th>
+            <th>Experience</th>
+            <th>Availability</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="assistant-list"></tbody>
+      </table>
+    </div>
+</div>
+
+ 
+<div class="container mt-3">
+    <a href="http://127.0.0.1:8000/manager_dashboard/" class="btn btn-primary">
+        Back to Manager Dashboard
+    </a>
+</div>
+
+
+
+  <!-- Bootstrap JS and jQuery (required for Bootstrap) -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+  <script>
+    // Submit form data via AJAX POST request
+    document.getElementById('assistantForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const form = event.target;
+      const formData = new FormData(form);
+
+      fetch('/create_assistant/', {
+        method: 'POST',
+        body: JSON.stringify(Object.fromEntries(formData)),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken') // Ensure CSRF token is sent
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('Assistant created successfully!');
+        } else {
+          alert('Error: ' + data.error);
+        }
+      })
+      .catch(error => console.error('Error:', error));
+    });
+
+    // Function to get CSRF token from cookies
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.startsWith(name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+    const fetchAssistantBtn = document.getElementById("fetchAssistantBtn");
+    const assistantIDInput = document.getElementById("assistantIDInput");
+    const assistantList = document.getElementById("assistant-list");
+    
+    // Function to fetch assistant details
+    fetchAssistantBtn.addEventListener("click", function() {
+      const assistantID = assistantIDInput.value;
+      fetch(`/get_assistant/${assistantID}/`)
+        .then(response => response.json())
+        .then(data => {
+          displayAssistant(data);
+        })
+        .catch(error => console.error('Error:', error));
+    });
+    
+    // Function to display assistant details in the table
+    function displayAssistant(assistant) {
+      const newRow = document.createElement("tr");
+      newRow.innerHTML = `
+        <td>${assistant.name}</td>
+        <td>${assistant.phone_number}</td>
+        <td>${assistant.address}</td>
+        <td>${assistant.qualification}</td>
+        <td>${assistant.experience}</td>
+        <td>${assistant.available_from} - ${assistant.available_to}</td>
+        <td>
+          <button class="btn btn-danger" onclick="deleteAssistant(${assistant.assistantID})">Delete</button>
+        </td>
+      `;
+      assistantList.innerHTML = ''; // Clear previous content
+      assistantList.appendChild(newRow);
+    }
+    
+    // Function to delete assistant
+    function deleteAssistant(assistantID) {
+      fetch(`/delete_assistant/${assistantID}/`, {
+          method: 'DELETE',
+        })
+        .then(response => {
+          if (response.ok) {
+            // If deletion successful, remove the row from the table
+            assistantList.innerHTML = '';
+          } else {
+            console.error('Error:', response.statusText);
+          }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+    
+      
+  </script>
+</body>
+</html>
